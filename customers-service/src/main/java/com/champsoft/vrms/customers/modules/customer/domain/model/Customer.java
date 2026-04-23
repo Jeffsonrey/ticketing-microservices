@@ -1,4 +1,4 @@
-package com.champsoft.vrms.customers.modules.customer.model;
+package com.champsoft.vrms.customers.modules.customer.domain.model;
 
 import jakarta.persistence.*;
 import java.util.UUID;

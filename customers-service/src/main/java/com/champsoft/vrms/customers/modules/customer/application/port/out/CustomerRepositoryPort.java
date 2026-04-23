@@ -1,6 +1,6 @@
 package com.champsoft.vrms.customers.modules.customer.application.port.out;
 
-import com.champsoft.vrms.customers.modules.customer.model.Customer;
+import com.champsoft.vrms.customers.modules.customer.domain.model.Customer;
 
 import java.util.List;
 import java.util.Optional;

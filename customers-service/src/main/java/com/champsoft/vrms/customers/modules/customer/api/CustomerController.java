@@ -5,7 +5,7 @@ import com.champsoft.vrms.customers.modules.customer.api.dto.CustomerResponseMod
 
 import com.champsoft.vrms.customers.modules.customer.api.mapper.CustomerResponseMapper;
 import com.champsoft.vrms.customers.modules.customer.application.service.CustomerService;
-import com.champsoft.vrms.customers.modules.customer.model.Customer;
+import com.champsoft.vrms.customers.modules.customer.domain.model.Customer;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -61,5 +61,10 @@ public class CustomerController {
     public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
         customerService.deleteCustomer(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/eligibility")
+    public ResponseEntity<Boolean> isEligible(@PathVariable Long id) {
+        return ResponseEntity.ok(eligibilityService.isEligible(id));
     }
 }

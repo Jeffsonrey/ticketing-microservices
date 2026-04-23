@@ -45,3 +45,11 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.hibernate.type.descriptor.sql.BasicBinder: trace
+
+services:
+  events:
+    base-url: https://localhost:8082
+  ticket-inventories:
+    base-url: https://localhost:8083
+  customers:
+    base-url: https://localhost:8081

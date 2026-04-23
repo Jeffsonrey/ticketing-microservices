@@ -1,7 +1,7 @@
 package com.champsoft.vrms.customers.modules.customer.api.mapper;
 
 import com.champsoft.vrms.customers.modules.customer.api.dto.CustomerResponseModel;
-import com.champsoft.vrms.customers.modules.customer.model.Customer;
+import com.champsoft.vrms.customers.modules.customer.domain.model.Customer;
 
 public class CustomerResponseMapper {
 

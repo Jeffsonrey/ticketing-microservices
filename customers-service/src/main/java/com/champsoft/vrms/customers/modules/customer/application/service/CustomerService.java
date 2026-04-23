@@ -4,7 +4,7 @@ import com.champsoft.vrms.customers.modules.customer.api.dto.CustomerRequestMode
 import com.champsoft.vrms.customers.modules.customer.application.exception.CustomerNotFoundException;
 import com.champsoft.vrms.customers.modules.customer.application.exception.DuplicateCustomerEmailException;
 import com.champsoft.vrms.customers.modules.customer.application.port.out.CustomerRepositoryPort;
-import com.champsoft.vrms.customers.modules.customer.model.Customer;
+import com.champsoft.vrms.customers.modules.customer.domain.model.Customer;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

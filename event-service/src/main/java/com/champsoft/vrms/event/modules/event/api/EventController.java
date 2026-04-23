@@ -103,4 +103,8 @@ public class EventController {
         crudService.delete(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/{id}/eligibility")
+    public ResponseEntity<Boolean> isEligible(@PathVariable String id) {
+        return ResponseEntity.ok(eligibilityService.isEligible(id));
+    }
 }
