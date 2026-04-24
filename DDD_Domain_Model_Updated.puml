@@ -1,0 +1,113 @@
+@startuml DDD_Domain_Model_Updated
+!theme plain
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam titleFontSize 22
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam ArrowColor #555555
+skinparam class {
+  BorderColor #333333
+  BackgroundColor #F8F9FA
+}
+
+title Updated DDD Domain Model\nTicketing Microservices Bounded Contexts
+
+package "Customer Context" as CustomerContext {
+  class Customer <<Aggregate Root>> {
+    customerId
+    firstName
+    lastName
+    emailAddress
+    phoneNumber
+  }
+
+  class CustomerId <<Value Object>> {
+    value
+  }
+
+  Customer *-- CustomerId
+}
+
+package "Event Context" as EventContext {
+  class EventListing <<Aggregate Root>> {
+    eventId
+    title
+    description
+    totalCapacity
+    availableTickets
+    status
+  }
+
+  class EventId <<Value Object>> {
+    value
+  }
+
+  class EventSchedule <<Value Object>> {
+    startDateTime
+    endDateTime
+  }
+
+  class Venue <<Value Object>> {
+    venueId
+    name
+    address
+    city
+  }
+
+  class VenueId <<Value Object>> {
+    value
+  }
+
+  enum EventStatus {
+    ACTIVE
+    INACTIVE
+    CANCELLED
+  }
+
+  EventListing *-- EventId
+  EventListing *-- EventSchedule
+  EventListing *-- Venue
+  EventListing --> EventStatus
+  Venue *-- VenueId
+}
+
+package "Ticket Inventory Context" as InventoryContext {
+  class TicketInventory <<Aggregate Root>> {
+    inventoryId
+    eventId
+    ticketType
+    totalTickets
+    availableTickets
+  }
+}
+
+package "Ticket Order Management Context" as OrderContext {
+  class TicketOrder <<Aggregate Root>> {
+    orderId
+    customerId
+    eventId
+    ticketType
+    quantity
+    totalPrice
+    status
+  }
+
+  class CustomerEligibilityPort <<Port>>
+  class EventEligibilityPort <<Port>>
+  class TicketInventoryEligibilityPort <<Port>>
+  class TicketOrderRepositoryPort <<Repository Port>>
+}
+
+OrderContext ..> CustomerContext : references customerId\nchecks eligibility
+OrderContext ..> EventContext : references eventId\nchecks event eligibility
+OrderContext ..> InventoryContext : references eventId + ticketType\nchecks ticket availability
+
+note bottom of OrderContext
+TicketOrder does not directly own Customer,
+EventListing, or TicketInventory.
+It stores their IDs and communicates through ports/adapters.
+end note
+@enduml

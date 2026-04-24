@@ -1,0 +1,47 @@
+@startuml C4_L1_System_Context
+!theme plain
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam titleFontSize 22
+skinparam ArrowColor #555555
+skinparam rectangle {
+  BorderColor #333333
+  BackgroundColor #F8F9FA
+}
+skinparam database {
+  BorderColor #333333
+  BackgroundColor #FFF4CC
+}
+
+title C4 Level 1 - System Context\nTicketing Microservices System
+
+actor "Customer / User" as User
+actor "Admin / Staff" as Admin
+
+rectangle "Ticketing Microservices System" as System {
+  rectangle "API Gateway" as Gateway
+  rectangle "Ticketing Backend Services" as Backend
+}
+
+database "Service Databases\nH2 + Flyway migrations" as DB
+
+User --> Gateway : uses ticketing API
+Admin --> Gateway : manages events / inventory
+Gateway --> Backend : routes REST requests
+Backend --> DB : stores domain data
+
+note right of System
+Main features:
+- Customer management
+- Event management
+- Ticket inventory management
+- Ticket order management
+end note
+
+note bottom of Gateway
+Single public entry point for API calls.
+Routes requests to the correct backend service.
+end note
+@enduml

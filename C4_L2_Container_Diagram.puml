@@ -1,0 +1,54 @@
+@startuml C4_L2_Container_Diagram
+!theme plain
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam titleFontSize 22
+skinparam ArrowColor #555555
+skinparam rectangle {
+  BorderColor #333333
+  BackgroundColor #F8F9FA
+}
+skinparam database {
+  BorderColor #333333
+  BackgroundColor #FFF4CC
+}
+
+title C4 Level 2 - Container Diagram\nTicketing Microservices System
+
+actor "Client\n(Postman / Browser / Frontend)" as Client
+
+rectangle "API Gateway\nSpring Boot" as Gateway
+
+rectangle "Customers Service\nSpring Boot :8081" as Customers
+rectangle "Event Service\nSpring Boot :8082" as Events
+rectangle "Ticket Inventory Service\nSpring Boot :8083" as Inventory
+rectangle "Ticket Order Management Service\nSpring Boot :8084" as Orders
+
+database "customers-db\nH2" as CustomersDB
+database "event-db\nH2" as EventsDB
+database "ticketinventory-db\nH2" as InventoryDB
+database "ticketordermanagement-db\nH2" as OrdersDB
+
+Client --> Gateway : REST API requests
+Gateway --> Customers : /api/customers/**
+Gateway --> Events : /api/events/**
+Gateway --> Inventory : /api/ticket-inventories/**
+Gateway --> Orders : /api/ticket-orders/**
+
+Customers --> CustomersDB : JPA / Flyway
+Events --> EventsDB : JPA / Flyway
+Inventory --> InventoryDB : JPA / Flyway
+Orders --> OrdersDB : JPA / Flyway
+
+Orders ..> Customers : validates customer eligibility\nCustomerEligibilityRestAdapter
+Orders ..> Events : validates event eligibility\nEventEligibilityRestAdapter
+Orders ..> Inventory : validates ticket inventory eligibility\nTicketInventoryEligibilityRestAdapter
+
+note bottom of Orders
+Order service coordinates the purchase flow.
+It keeps references to customer, event,
+and inventory instead of owning their data.
+end note
+@enduml
