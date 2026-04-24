@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/customers/{{customerId}}"
+method: GET
+scripts:
+  - type: beforeRequest
+    code: >-
+      if (pm.collectionVariables.get('runCleanup') !== 'true') {
+      pm.execution.skipRequest(); }
+
+      const id = pm.collectionVariables.get('customerId');
+
+      if (!id) throw new Error('customerId is empty. Run Create Customer
+      first.');
+    language: text/javascript
+order: 4000

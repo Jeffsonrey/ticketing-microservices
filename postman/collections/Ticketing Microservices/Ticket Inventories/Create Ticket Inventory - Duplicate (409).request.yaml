@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ticket-inventories"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "eventId": "{{eventId}}",
+      "ticketType": "{{ticketType}}",
+      "totalTickets": {{totalTickets}},
+      "availableTickets": {{availableTickets}}
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      const id = pm.collectionVariables.get('eventId');
+      if (!id) throw new Error('eventId is empty. Run Create Event first.');
+    language: text/javascript
+  - type: afterResponse
+    code: pm.test('Status is 409', function () { pm.response.to.have.status(409); });
+    language: text/javascript
+order: 2000

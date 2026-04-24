@@ -1,0 +1,1376 @@
+{
+  "info": {
+    "_postman_id": "4f053750-b033-4d14-83c2-1cb6b29b5378",
+    "name": "Ticketing Microservices",
+    "description": "Ticketing microservices collection aligned with the controllers in this project.\n\nBASE\n\n- Base URL: {{baseUrl}}\n- Default gateway URL: http://localhost:8080\n\nHOW IDs ARE STORED (IMPORTANT)\n\n- This collection stores IDs in COLLECTION variables (pm.collectionVariables)\n- customerId, eventId, ticketInventoryId, ticketOrderId\n- This works even if you do NOT select a Postman Environment.\n\nSUGGESTED RUN ORDER\n\n1) Customers -> Create Customer\n2) Events -> Create Event\n3) Events -> Activate Event\n4) Ticket Inventories -> Create Ticket Inventory\n5) Ticket Orders -> Create Ticket Order\n\nENDPOINT LIST (DOCUMENTATION)\n\nCUSTOMERS\n- POST /api/customers\n- GET /api/customers\n- GET /api/customers/{id}\n- PUT /api/customers/{id}\n- DELETE /api/customers/{id}\n- GET /api/customers/{id}/eligibility\n\nEVENTS\n- POST /api/events\n- GET /api/events\n- GET /api/events/{id}\n- PUT /api/events/{id}\n- POST /api/events/{id}/activate\n- POST /api/events/{id}/cancel\n- GET /api/events/{id}/eligibility\n- DELETE /api/events/{id}\n\nTICKET INVENTORIES\n- POST /api/ticket-inventories\n- GET /api/ticket-inventories\n- GET /api/ticket-inventories/{id}\n- PUT /api/ticket-inventories/{id}\n- DELETE /api/ticket-inventories/{id}\n- GET /api/ticket-inventories/eligibility?eventId=...&ticketType=...&quantity=...\n\nTICKET ORDERS\n- POST /api/ticket-orders\n- GET /api/ticket-orders\n- GET /api/ticket-orders/{id}\n- PUT /api/ticket-orders/{id}\n- DELETE /api/ticket-orders/{id}\n\nNOTES\n\n- Requests are routed through Spring Cloud Gateway.\n- Safe for local H2 runs and Docker runs if the gateway is available on port 8080.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "21908877"
+  },
+  "item": [
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Create Customer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "const id = json.id || json.customerId || (json.data && json.data.id);",
+                  "pm.test('Response returned a customer id', function () { pm.expect(id, 'customer id missing').to.be.ok; });",
+                  "pm.collectionVariables.set('customerId', id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"{{customerFirstName}}\",\n  \"lastName\": \"{{customerLastName}}\",\n  \"emailAddress\": \"{{customerEmail}}\",\n  \"phoneNumber\": \"{{customerPhone}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Customer - Invalid Email (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"{{customerFirstName}}\",\n  \"lastName\": \"{{customerLastName}}\",\n  \"emailAddress\": \"{{invalidEmail}}\",\n  \"phoneNumber\": \"{{customerPhone}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer By Id",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const id = pm.collectionVariables.get('customerId');",
+                  "if (!id) throw new Error('customerId is empty. Run Create Customer first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Customer By Id - Not Found (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{missingLongId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{missingLongId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Customer Eligibility",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const id = pm.collectionVariables.get('customerId');",
+                  "if (!id) throw new Error('customerId is empty. Run Create Customer first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}/eligibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}",
+                "eligibility"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Customer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('customerId');",
+                  "if (!id) throw new Error('customerId is empty. Run Create Customer first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"{{updatedCustomerFirstName}}\",\n  \"lastName\": \"{{updatedCustomerLastName}}\",\n  \"emailAddress\": \"{{updatedCustomerEmail}}\",\n  \"phoneNumber\": \"{{updatedCustomerPhone}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Customer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('customerId');",
+                  "if (!id) throw new Error('customerId is empty. Run Create Customer first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "customers",
+                "{{customerId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Create Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "const id = json.id || json.eventId || (json.data && json.data.id);",
+                  "pm.test('Response returned an event id', function () { pm.expect(id, 'event id missing').to.be.ok; });",
+                  "pm.collectionVariables.set('eventId', id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{eventTitle}}\",\n  \"description\": \"{{eventDescription}}\",\n  \"venueName\": \"{{venueName}}\",\n  \"venueAddress\": \"{{venueAddress}}\",\n  \"venueCity\": \"{{venueCity}}\",\n  \"startDateTime\": \"{{eventStartDateTime}}\",\n  \"endDateTime\": \"{{eventEndDateTime}}\",\n  \"totalCapacity\": {{eventCapacity}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Activate Event",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const id = pm.collectionVariables.get('eventId');",
+                  "if (!id) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json.id) pm.collectionVariables.set('eventId', json.id);",
+                  "if (json.status) { pm.test('Event is ACTIVE', function () { pm.expect(json.status).to.eql('ACTIVE'); }); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/activate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "{{eventId}}",
+                "activate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event By Id",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const id = pm.collectionVariables.get('eventId');",
+                  "if (!id) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "{{eventId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event By Id - Not Found (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{missingEventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "{{missingEventId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Event Eligibility",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const id = pm.collectionVariables.get('eventId');",
+                  "if (!id) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/eligibility",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "{{eventId}}",
+                "eligibility"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Event",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const id = pm.collectionVariables.get('eventId');",
+                  "if (!id) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{updatedEventTitle}}\",\n  \"description\": \"{{updatedEventDescription}}\",\n  \"venueName\": \"{{venueName}}\",\n  \"venueAddress\": \"{{venueAddress}}\",\n  \"venueCity\": \"{{venueCity}}\",\n  \"startDateTime\": \"{{eventStartDateTime}}\",\n  \"endDateTime\": \"{{eventEndDateTime}}\",\n  \"totalCapacity\": {{updatedEventCapacity}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "{{eventId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel Event",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('eventId');",
+                  "if (!id) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "if (json.status) { pm.test('Event is CANCELLED', function () { pm.expect(json.status).to.eql('CANCELLED'); }); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "{{eventId}}",
+                "cancel"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Event",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('eventId');",
+                  "if (!id) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/events/{{eventId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "{{eventId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ticket Inventories",
+      "item": [
+        {
+          "name": "Create Ticket Inventory",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('eventId');",
+                  "if (!id) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "const id = json.id || json.ticketInventoryId || (json.data && json.data.id);",
+                  "pm.test('Response returned a ticket inventory id', function () { pm.expect(id, 'ticket inventory id missing').to.be.ok; });",
+                  "pm.collectionVariables.set('ticketInventoryId', id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"{{ticketType}}\",\n  \"totalTickets\": {{totalTickets}},\n  \"availableTickets\": {{availableTickets}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-inventories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-inventories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Ticket Inventory - Duplicate (409)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('eventId');",
+                  "if (!id) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 409', function () { pm.response.to.have.status(409); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"{{ticketType}}\",\n  \"totalTickets\": {{totalTickets}},\n  \"availableTickets\": {{availableTickets}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-inventories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-inventories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Ticket Inventories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-inventories",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-inventories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ticket Inventory By Id",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('ticketInventoryId');",
+                  "if (!id) throw new Error('ticketInventoryId is empty. Run Create Ticket Inventory first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-inventories/{{ticketInventoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-inventories",
+                "{{ticketInventoryId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check Ticket Inventory Eligibility",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const eventId = pm.collectionVariables.get('eventId');",
+                  "if (!eventId) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-inventories/eligibility?eventId={{eventId}}&ticketType={{ticketType}}&quantity={{orderQuantity}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-inventories",
+                "eligibility"
+              ],
+              "query": [
+                {
+                  "key": "eventId",
+                  "value": "{{eventId}}"
+                },
+                {
+                  "key": "ticketType",
+                  "value": "{{ticketType}}"
+                },
+                {
+                  "key": "quantity",
+                  "value": "{{orderQuantity}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Ticket Inventory",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const inventoryId = pm.collectionVariables.get('ticketInventoryId');",
+                  "const eventId = pm.collectionVariables.get('eventId');",
+                  "if (!inventoryId) throw new Error('ticketInventoryId is empty. Run Create Ticket Inventory first.');",
+                  "if (!eventId) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"{{updatedTicketType}}\",\n  \"totalTickets\": {{updatedTotalTickets}},\n  \"availableTickets\": {{updatedAvailableTickets}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-inventories/{{ticketInventoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-inventories",
+                "{{ticketInventoryId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Ticket Inventory",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const id = pm.collectionVariables.get('ticketInventoryId');",
+                  "if (!id) throw new Error('ticketInventoryId is empty. Run Create Ticket Inventory first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-inventories/{{ticketInventoryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-inventories",
+                "{{ticketInventoryId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Ticket Orders",
+      "item": [
+        {
+          "name": "Create Ticket Order",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const customerId = pm.collectionVariables.get('customerId');",
+                  "const eventId = pm.collectionVariables.get('eventId');",
+                  "if (!customerId) throw new Error('customerId is empty. Run Create Customer first.');",
+                  "if (!eventId) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200 or 201', function () { pm.expect([200, 201]).to.include(pm.response.code); });",
+                  "const json = pm.response.json();",
+                  "const id = json.id || json.ticketOrderId || (json.data && json.data.id);",
+                  "pm.test('Response returned a ticket order id', function () { pm.expect(id, 'ticket order id missing').to.be.ok; });",
+                  "pm.collectionVariables.set('ticketOrderId', id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customerId}},\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"{{ticketType}}\",\n  \"quantity\": {{orderQuantity}},\n  \"totalPrice\": {{orderTotalPrice}},\n  \"status\": \"{{orderStatus}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Ticket Order - Invalid Quantity (400)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const customerId = pm.collectionVariables.get('customerId');",
+                  "const eventId = pm.collectionVariables.get('eventId');",
+                  "if (!customerId) throw new Error('customerId is empty. Run Create Customer first.');",
+                  "if (!eventId) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', function () { pm.response.to.have.status(400); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customerId}},\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"{{ticketType}}\",\n  \"quantity\": 0,\n  \"totalPrice\": {{orderTotalPrice}},\n  \"status\": \"{{orderStatus}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Ticket Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ticket Order By Id",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const id = pm.collectionVariables.get('ticketOrderId');",
+                  "if (!id) throw new Error('ticketOrderId is empty. Run Create Ticket Order first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-orders/{{ticketOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-orders",
+                "{{ticketOrderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Ticket Order By Id - Not Found (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-orders/{{missingLongId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-orders",
+                "{{missingLongId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Ticket Order",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const orderId = pm.collectionVariables.get('ticketOrderId');",
+                  "const customerId = pm.collectionVariables.get('customerId');",
+                  "const eventId = pm.collectionVariables.get('eventId');",
+                  "if (!orderId) throw new Error('ticketOrderId is empty. Run Create Ticket Order first.');",
+                  "if (!customerId) throw new Error('customerId is empty. Run Create Customer first.');",
+                  "if (!eventId) throw new Error('eventId is empty. Run Create Event first.');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customerId}},\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"{{ticketType}}\",\n  \"quantity\": {{updatedOrderQuantity}},\n  \"totalPrice\": {{updatedOrderTotalPrice}},\n  \"status\": \"{{updatedOrderStatus}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-orders/{{ticketOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-orders",
+                "{{ticketOrderId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Ticket Order",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.collectionVariables.get('runCleanup') !== 'true') { pm.execution.skipRequest(); }",
+                  "const id = pm.collectionVariables.get('ticketOrderId');",
+                  "if (!id) throw new Error('ticketOrderId is empty. Run Create Ticket Order first.');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', function () { pm.response.to.have.status(204); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/ticket-orders/{{ticketOrderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ticket-orders",
+                "{{ticketOrderId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "customerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ticketInventoryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ticketOrderId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "runCleanup",
+      "value": "false",
+      "type": "string"
+    },
+    {
+      "key": "missingLongId",
+      "value": "999999",
+      "type": "string"
+    },
+    {
+      "key": "missingEventId",
+      "value": "missing-event-id",
+      "type": "string"
+    },
+    {
+      "key": "customerFirstName",
+      "value": "Avery",
+      "type": "string"
+    },
+    {
+      "key": "customerLastName",
+      "value": "Morgan",
+      "type": "string"
+    },
+    {
+      "key": "customerEmail",
+      "value": "avery.morgan@example.com",
+      "type": "string"
+    },
+    {
+      "key": "customerPhone",
+      "value": "514-555-0101",
+      "type": "string"
+    },
+    {
+      "key": "updatedCustomerFirstName",
+      "value": "Avery-Updated",
+      "type": "string"
+    },
+    {
+      "key": "updatedCustomerLastName",
+      "value": "Morgan-Updated",
+      "type": "string"
+    },
+    {
+      "key": "updatedCustomerEmail",
+      "value": "avery.updated@example.com",
+      "type": "string"
+    },
+    {
+      "key": "updatedCustomerPhone",
+      "value": "514-555-0102",
+      "type": "string"
+    },
+    {
+      "key": "invalidEmail",
+      "value": "not-an-email",
+      "type": "string"
+    },
+    {
+      "key": "eventTitle",
+      "value": "Spring Music Festival",
+      "type": "string"
+    },
+    {
+      "key": "eventDescription",
+      "value": "Outdoor live music event for gateway demo testing.",
+      "type": "string"
+    },
+    {
+      "key": "updatedEventTitle",
+      "value": "Spring Music Festival Updated",
+      "type": "string"
+    },
+    {
+      "key": "updatedEventDescription",
+      "value": "Updated event description for API testing.",
+      "type": "string"
+    },
+    {
+      "key": "venueName",
+      "value": "Bell Centre",
+      "type": "string"
+    },
+    {
+      "key": "venueAddress",
+      "value": "1909 Avenue des Canadiens-de-Montreal",
+      "type": "string"
+    },
+    {
+      "key": "venueCity",
+      "value": "Montreal",
+      "type": "string"
+    },
+    {
+      "key": "eventStartDateTime",
+      "value": "2026-06-01T18:00:00",
+      "type": "string"
+    },
+    {
+      "key": "eventEndDateTime",
+      "value": "2026-06-01T21:00:00",
+      "type": "string"
+    },
+    {
+      "key": "eventCapacity",
+      "value": "200",
+      "type": "string"
+    },
+    {
+      "key": "updatedEventCapacity",
+      "value": "250",
+      "type": "string"
+    },
+    {
+      "key": "ticketType",
+      "value": "GENERAL",
+      "type": "string"
+    },
+    {
+      "key": "updatedTicketType",
+      "value": "VIP",
+      "type": "string"
+    },
+    {
+      "key": "totalTickets",
+      "value": "100",
+      "type": "string"
+    },
+    {
+      "key": "availableTickets",
+      "value": "100",
+      "type": "string"
+    },
+    {
+      "key": "updatedTotalTickets",
+      "value": "150",
+      "type": "string"
+    },
+    {
+      "key": "updatedAvailableTickets",
+      "value": "120",
+      "type": "string"
+    },
+    {
+      "key": "orderQuantity",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "updatedOrderQuantity",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "orderTotalPrice",
+      "value": "99.99",
+      "type": "string"
+    },
+    {
+      "key": "updatedOrderTotalPrice",
+      "value": "49.99",
+      "type": "string"
+    },
+    {
+      "key": "orderStatus",
+      "value": "CREATED",
+      "type": "string"
+    },
+    {
+      "key": "updatedOrderStatus",
+      "value": "CONFIRMED",
+      "type": "string"
+    }
+  ]
+}

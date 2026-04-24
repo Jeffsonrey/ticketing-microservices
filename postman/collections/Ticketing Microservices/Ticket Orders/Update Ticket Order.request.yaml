@@ -1,0 +1,35 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ticket-orders/{{ticketOrderId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "customerId": {{customerId}},
+      "eventId": "{{eventId}}",
+      "ticketType": "{{ticketType}}",
+      "quantity": {{updatedOrderQuantity}},
+      "totalPrice": {{updatedOrderTotalPrice}},
+      "status": "{{updatedOrderStatus}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: >-
+      const orderId = pm.collectionVariables.get('ticketOrderId');
+
+      const customerId = pm.collectionVariables.get('customerId');
+
+      const eventId = pm.collectionVariables.get('eventId');
+
+      if (!orderId) throw new Error('ticketOrderId is empty. Run Create Ticket
+      Order first.');
+
+      if (!customerId) throw new Error('customerId is empty. Run Create Customer
+      first.');
+
+      if (!eventId) throw new Error('eventId is empty. Run Create Event
+      first.');
+    language: text/javascript
+order: 6000

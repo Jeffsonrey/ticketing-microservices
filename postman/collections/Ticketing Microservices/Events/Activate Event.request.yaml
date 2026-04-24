@@ -1,0 +1,26 @@
+$kind: http-request
+url: "{{baseUrl}}/api/events/{{eventId}}/activate"
+method: POST
+scripts:
+  - type: beforeRequest
+    code: >-
+      if (pm.collectionVariables.get('runCleanup') !== 'true') {
+      pm.execution.skipRequest(); }
+
+      const id = pm.collectionVariables.get('eventId');
+
+      if (!id) throw new Error('eventId is empty. Run Create Event first.');
+    language: text/javascript
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200', function () { pm.response.to.have.status(200);
+      });
+
+      const json = pm.response.json();
+
+      if (json.id) pm.collectionVariables.set('eventId', json.id);
+
+      if (json.status) { pm.test('Event is ACTIVE', function () {
+      pm.expect(json.status).to.eql('ACTIVE'); }); }
+    language: text/javascript
+order: 2000

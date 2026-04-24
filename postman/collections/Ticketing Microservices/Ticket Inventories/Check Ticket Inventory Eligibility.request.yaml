@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ticket-inventories/eligibility?eventId={{eventId}}&ticket\
+  Type={{ticketType}}&quantity={{orderQuantity}}"
+method: GET
+queryParams:
+  eventId: "{{eventId}}"
+  ticketType: "{{ticketType}}"
+  quantity: "{{orderQuantity}}"
+scripts:
+  - type: beforeRequest
+    code: >-
+      const eventId = pm.collectionVariables.get('eventId');
+
+      if (!eventId) throw new Error('eventId is empty. Run Create Event
+      first.');
+    language: text/javascript
+order: 5000

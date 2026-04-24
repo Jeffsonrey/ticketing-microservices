@@ -1,0 +1,45 @@
+$kind: http-request
+name: Create Ticket Order
+url: "{{baseUrl}}/api/ticket-orders"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "customerId":17,
+      "eventId": "20ea4cac-a679-4da9-897e-6d22fd0234dd",
+      "ticketType": "{{ticketType}}",
+      "quantity": {{orderQuantity}},
+      "totalPrice": {{orderTotalPrice}},
+      "status": "{{orderStatus}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: >-
+      const customerId = pm.collectionVariables.get('customerId');
+
+      const eventId = pm.collectionVariables.get('eventId');
+
+      if (!customerId) throw new Error('customerId is empty. Run Create Customer
+      first.');
+
+      if (!eventId) throw new Error('eventId is empty. Run Create Event
+      first.');
+    language: text/javascript
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200 or 201', function () { pm.expect([200,
+      201]).to.include(pm.response.code); });
+
+      const json = pm.response.json();
+
+      const id = json.id || json.ticketOrderId || (json.data && json.data.id);
+
+      pm.test('Response returned a ticket order id', function () { pm.expect(id,
+      'ticket order id missing').to.be.ok; });
+
+      pm.collectionVariables.set('ticketOrderId', id);
+    language: text/javascript
+order: 1000

@@ -1,0 +1,153 @@
+$kind: collection
+name: Ticketing Microservices
+description: >-
+  Ticketing microservices collection aligned with the controllers in this
+  project.
+
+
+  BASE
+
+
+  - Base URL: {{baseUrl}}
+
+  - Default gateway URL: http://localhost:8080
+
+
+  HOW IDs ARE STORED (IMPORTANT)
+
+
+  - This collection stores IDs in COLLECTION variables (pm.collectionVariables)
+
+  - customerId, eventId, ticketInventoryId, ticketOrderId
+
+  - This works even if you do NOT select a Postman Environment.
+
+
+  SUGGESTED RUN ORDER
+
+
+  1) Customers -> Create Customer
+
+  2) Events -> Create Event
+
+  3) Events -> Activate Event
+
+  4) Ticket Inventories -> Create Ticket Inventory
+
+  5) Ticket Orders -> Create Ticket Order
+
+
+  ENDPOINT LIST (DOCUMENTATION)
+
+
+  CUSTOMERS
+
+  - POST /api/customers
+
+  - GET /api/customers
+
+  - GET /api/customers/{id}
+
+  - PUT /api/customers/{id}
+
+  - DELETE /api/customers/{id}
+
+  - GET /api/customers/{id}/eligibility
+
+
+  EVENTS
+
+  - POST /api/events
+
+  - GET /api/events
+
+  - GET /api/events/{id}
+
+  - PUT /api/events/{id}
+
+  - POST /api/events/{id}/activate
+
+  - POST /api/events/{id}/cancel
+
+  - GET /api/events/{id}/eligibility
+
+  - DELETE /api/events/{id}
+
+
+  TICKET INVENTORIES
+
+  - POST /api/ticket-inventories
+
+  - GET /api/ticket-inventories
+
+  - GET /api/ticket-inventories/{id}
+
+  - PUT /api/ticket-inventories/{id}
+
+  - DELETE /api/ticket-inventories/{id}
+
+  - GET
+  /api/ticket-inventories/eligibility?eventId=...&ticketType=...&quantity=...
+
+
+  TICKET ORDERS
+
+  - POST /api/ticket-orders
+
+  - GET /api/ticket-orders
+
+  - GET /api/ticket-orders/{id}
+
+  - PUT /api/ticket-orders/{id}
+
+  - DELETE /api/ticket-orders/{id}
+
+
+  NOTES
+
+
+  - Requests are routed through Spring Cloud Gateway.
+
+  - Safe for local H2 runs and Docker runs if the gateway is available on port
+  8080.
+variables:
+  baseUrl: http://localhost:8080
+  customerId: ""
+  eventId: ""
+  ticketInventoryId: ""
+  ticketOrderId: ""
+  runCleanup: "false"
+  missingLongId: "999999"
+  missingEventId: missing-event-id
+  customerFirstName: Avery
+  customerLastName: Morgan
+  customerEmail: avery.morgan@example.com
+  customerPhone: 514-555-0101
+  updatedCustomerFirstName: Avery-Updated
+  updatedCustomerLastName: Morgan-Updated
+  updatedCustomerEmail: avery.updated@example.com
+  updatedCustomerPhone: 514-555-0102
+  invalidEmail: not-an-email
+  eventTitle: Spring Music Festival
+  eventDescription: Outdoor live music event for gateway demo testing.
+  updatedEventTitle: Spring Music Festival Updated
+  updatedEventDescription: Updated event description for API testing.
+  venueName: Bell Centre
+  venueAddress: 1909 Avenue des Canadiens-de-Montreal
+  venueCity: Montreal
+  eventStartDateTime: 2026-06-01T18:00:00
+  eventEndDateTime: 2026-06-01T21:00:00
+  eventCapacity: "200"
+  updatedEventCapacity: "250"
+  ticketType: GENERAL
+  updatedTicketType: VIP
+  totalTickets: "100"
+  availableTickets: "100"
+  updatedTotalTickets: "150"
+  updatedAvailableTickets: "120"
+  orderQuantity: "2"
+  updatedOrderQuantity: "1"
+  orderTotalPrice: "99.99"
+  updatedOrderTotalPrice: "49.99"
+  orderStatus: CREATED
+  updatedOrderStatus: CONFIRMED

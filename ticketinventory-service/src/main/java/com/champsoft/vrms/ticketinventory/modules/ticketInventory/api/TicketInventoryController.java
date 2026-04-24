@@ -61,4 +61,12 @@ public class TicketInventoryController {
         ticketInventoryService.deleteInventory(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/eligibility")
+    public ResponseEntity<Boolean> isEligible(
+            @RequestParam String eventId,
+            @RequestParam String ticketType,
+            @RequestParam Integer quantity) {
+        return ResponseEntity.ok(ticketInventoryService.isEligible(eventId, ticketType, quantity));
+    }
 }

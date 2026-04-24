@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ticket-orders/{{ticketOrderId}}"
+method: DELETE
+scripts:
+  - type: beforeRequest
+    code: >-
+      if (pm.collectionVariables.get('runCleanup') !== 'true') {
+      pm.execution.skipRequest(); }
+
+      const id = pm.collectionVariables.get('ticketOrderId');
+
+      if (!id) throw new Error('ticketOrderId is empty. Run Create Ticket Order
+      first.');
+    language: text/javascript
+  - type: afterResponse
+    code: pm.test('Status is 204', function () { pm.response.to.have.status(204); });
+    language: text/javascript
+order: 7000

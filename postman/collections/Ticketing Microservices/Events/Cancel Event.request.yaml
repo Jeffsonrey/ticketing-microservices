@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/events/{{eventId}}/cancel"
+method: POST
+scripts:
+  - type: beforeRequest
+    code: |-
+      const id = pm.collectionVariables.get('eventId');
+      if (!id) throw new Error('eventId is empty. Run Create Event first.');
+    language: text/javascript
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200', function () { pm.response.to.have.status(200);
+      });
+
+      const json = pm.response.json();
+
+      if (json.status) { pm.test('Event is CANCELLED', function () {
+      pm.expect(json.status).to.eql('CANCELLED'); }); }
+    language: text/javascript
+order: 8000

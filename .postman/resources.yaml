@@ -1,0 +1,13 @@
+# Use this workspace to collaborate
+workspace:
+  id: 85255fff-f91e-4417-8ba9-119199bc1593
+
+localResources:
+  collections:
+    - ..\postman_collection_ticketing_microservices.json
+
+# Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
+
+cloudResources:
+  collections:
+    ..\postman\collections\Ticketing Microservices: b59ac4f5-1aaf-45cb-8993-c7402143f3c0

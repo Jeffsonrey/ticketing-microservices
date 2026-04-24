@@ -1,0 +1,29 @@
+$kind: http-request
+url: "{{baseUrl}}/api/events/{{eventId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "title": "{{updatedEventTitle}}",
+      "description": "{{updatedEventDescription}}",
+      "venueName": "{{venueName}}",
+      "venueAddress": "{{venueAddress}}",
+      "venueCity": "{{venueCity}}",
+      "startDateTime": "{{eventStartDateTime}}",
+      "endDateTime": "{{eventEndDateTime}}",
+      "totalCapacity": {{updatedEventCapacity}}
+    }
+scripts:
+  - type: beforeRequest
+    code: >-
+      if (pm.collectionVariables.get('runCleanup') !== 'true') {
+      pm.execution.skipRequest(); }
+
+      const id = pm.collectionVariables.get('eventId');
+
+      if (!id) throw new Error('eventId is empty. Run Create Event first.');
+    language: text/javascript
+order: 7000

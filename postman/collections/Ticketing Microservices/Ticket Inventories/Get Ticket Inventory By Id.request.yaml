@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ticket-inventories/{{ticketInventoryId}}"
+method: GET
+scripts:
+  - type: beforeRequest
+    code: >-
+      const id = pm.collectionVariables.get('ticketInventoryId');
+
+      if (!id) throw new Error('ticketInventoryId is empty. Run Create Ticket
+      Inventory first.');
+    language: text/javascript
+order: 4000

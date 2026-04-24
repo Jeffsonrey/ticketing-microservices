@@ -1,0 +1,36 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ticket-inventories"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "eventId": "{{eventId}}",
+      "ticketType": "{{ticketType}}",
+      "totalTickets": {{totalTickets}},
+      "availableTickets": {{availableTickets}}
+    }
+scripts:
+  - type: beforeRequest
+    code: |-
+      const id = pm.collectionVariables.get('eventId');
+      if (!id) throw new Error('eventId is empty. Run Create Event first.');
+    language: text/javascript
+  - type: afterResponse
+    code: >-
+      pm.test('Status is 200 or 201', function () { pm.expect([200,
+      201]).to.include(pm.response.code); });
+
+      const json = pm.response.json();
+
+      const id = json.id || json.ticketInventoryId || (json.data &&
+      json.data.id);
+
+      pm.test('Response returned a ticket inventory id', function () {
+      pm.expect(id, 'ticket inventory id missing').to.be.ok; });
+
+      pm.collectionVariables.set('ticketInventoryId', id);
+    language: text/javascript
+order: 1000

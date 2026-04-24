@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/api/customers/{{customerId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "firstName": "{{updatedCustomerFirstName}}",
+      "lastName": "{{updatedCustomerLastName}}",
+      "emailAddress": "{{updatedCustomerEmail}}",
+      "phoneNumber": "{{updatedCustomerPhone}}"
+    }
+scripts:
+  - type: beforeRequest
+    code: >-
+      const id = pm.collectionVariables.get('customerId');
+
+      if (!id) throw new Error('customerId is empty. Run Create Customer
+      first.');
+    language: text/javascript
+order: 7000

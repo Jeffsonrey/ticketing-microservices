@@ -1,0 +1,31 @@
+$kind: http-request
+url: "{{baseUrl}}/api/ticket-inventories/{{ticketInventoryId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "eventId": "{{eventId}}",
+      "ticketType": "{{updatedTicketType}}",
+      "totalTickets": {{updatedTotalTickets}},
+      "availableTickets": {{updatedAvailableTickets}}
+    }
+scripts:
+  - type: beforeRequest
+    code: >-
+      if (pm.collectionVariables.get('runCleanup') !== 'true') {
+      pm.execution.skipRequest(); }
+
+      const inventoryId = pm.collectionVariables.get('ticketInventoryId');
+
+      const eventId = pm.collectionVariables.get('eventId');
+
+      if (!inventoryId) throw new Error('ticketInventoryId is empty. Run Create
+      Ticket Inventory first.');
+
+      if (!eventId) throw new Error('eventId is empty. Run Create Event
+      first.');
+    language: text/javascript
+order: 6000

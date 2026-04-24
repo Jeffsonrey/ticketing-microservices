@@ -48,8 +48,32 @@ logging:
 
 services:
   events:
-    base-url: https://localhost:8082
+    base-url: http://localhost:8082
   ticket-inventories:
-    base-url: https://localhost:8083
+    base-url: http://localhost:8083
   customers:
-    base-url: https://localhost:8081
+    base-url: http://localhost:8081
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://ticketordermanagement-db:5432/ticketordermanagement_db
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: postgres
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  h2:
+    console:
+      enabled: false
+
+services:
+  events:
+    base-url: http://event-service:8082
+  ticket-inventories:
+    base-url: http://ticketinventory-service:8083
+  customers:
+    base-url: http://customers-service:8081

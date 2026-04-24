@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
 @RequestMapping("/api/ticket-orders")
@@ -27,6 +29,7 @@ public class TicketOrderController {
         List<TicketOrderResponseModel> response = ticketOrderService.getAllOrders()
                 .stream()
                 .map(TicketOrderResponseMapper::toResponseModel)
+                .map(this::addLinks)
                 .toList();
 
         return ResponseEntity.ok(response);
@@ -35,7 +38,7 @@ public class TicketOrderController {
     @GetMapping("/{id}")
     public ResponseEntity<TicketOrderResponseModel> getOrderById(@PathVariable Long id) {
         TicketOrder ticketOrder = ticketOrderService.getOrderById(id);
-        return ResponseEntity.ok(TicketOrderResponseMapper.toResponseModel(ticketOrder));
+        return ResponseEntity.ok(addLinks(TicketOrderResponseMapper.toResponseModel(ticketOrder)));
     }
 
     @PostMapping
@@ -44,7 +47,7 @@ public class TicketOrderController {
 
         TicketOrder createdOrder = ticketOrderService.createOrder(requestModel);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(TicketOrderResponseMapper.toResponseModel(createdOrder));
+                .body(addLinks(TicketOrderResponseMapper.toResponseModel(createdOrder)));
     }
 
     @PutMapping("/{id}")
@@ -53,12 +56,19 @@ public class TicketOrderController {
             @Valid @RequestBody TicketOrderRequestModel requestModel) {
 
         TicketOrder updatedOrder = ticketOrderService.updateOrder(id, requestModel);
-        return ResponseEntity.ok(TicketOrderResponseMapper.toResponseModel(updatedOrder));
+        return ResponseEntity.ok(addLinks(TicketOrderResponseMapper.toResponseModel(updatedOrder)));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         ticketOrderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
+    }
+
+    private TicketOrderResponseModel addLinks(TicketOrderResponseModel model) {
+        model.add(linkTo(methodOn(TicketOrderController.class).getOrderById(model.getId())).withSelfRel());
+        model.add(linkTo(methodOn(TicketOrderController.class).getAllOrders()).withRel("orders"));
+        model.add(linkTo(methodOn(TicketOrderController.class).deleteOrder(model.getId())).withRel("delete"));
+        return model;
     }
 }

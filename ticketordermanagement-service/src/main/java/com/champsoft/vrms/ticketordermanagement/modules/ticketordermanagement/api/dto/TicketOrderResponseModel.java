@@ -1,8 +1,9 @@
 package com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.api.dto;
 
 import java.math.BigDecimal;
+import org.springframework.hateoas.RepresentationModel;
 
-public class TicketOrderResponseModel {
+public class TicketOrderResponseModel extends RepresentationModel<TicketOrderResponseModel> {
 
     private Long id;
     private String orderIdentifier;

@@ -1,0 +1,132 @@
+services:
+  customers-db:
+    image: postgres:16-alpine
+    container_name: customers-db
+    environment:
+      POSTGRES_DB: customers_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d customers_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  event-db:
+    image: postgres:16-alpine
+    container_name: event-db
+    environment:
+      POSTGRES_DB: event_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d event_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ticketinventory-db:
+    image: postgres:16-alpine
+    container_name: ticketinventory-db
+    environment:
+      POSTGRES_DB: ticketinventory_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ticketinventory_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ticketordermanagement-db:
+    image: postgres:16-alpine
+    container_name: ticketordermanagement-db
+    environment:
+      POSTGRES_DB: ticketordermanagement_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ticketordermanagement_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  customers-service:
+    build:
+      context: ./customers-service
+    container_name: customers-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      customers-db:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+
+  event-service:
+    build:
+      context: ./event-service
+    container_name: event-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      event-db:
+        condition: service_healthy
+    ports:
+      - "8082:8082"
+
+  ticketinventory-service:
+    build:
+      context: ./ticketinventory-service
+    container_name: ticketinventory-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      ticketinventory-db:
+        condition: service_healthy
+    ports:
+      - "8083:8083"
+
+  ticketordermanagement-service:
+    build:
+      context: ./ticketordermanagement-service
+    container_name: ticketordermanagement-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      customers-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+      ticketinventory-service:
+        condition: service_started
+      ticketordermanagement-db:
+        condition: service_healthy
+    ports:
+      - "8084:8084"
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      customers-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+      ticketinventory-service:
+        condition: service_started
+      ticketordermanagement-service:
+        condition: service_started
+    ports:
+      - "8080:8080"

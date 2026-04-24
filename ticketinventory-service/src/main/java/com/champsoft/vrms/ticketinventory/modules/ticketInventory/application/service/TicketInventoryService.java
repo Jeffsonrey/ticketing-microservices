@@ -71,6 +71,13 @@ public class TicketInventoryService {
         ticketInventoryRepositoryPort.delete(existingInventory);
     }
 
+    public boolean isEligible(String eventId, String ticketType, Integer quantity) {
+        return ticketInventoryRepositoryPort
+                .findByEventIdAndTicketType(eventId, ticketType)
+                .map(inventory -> inventory.getAvailableTickets() >= quantity)
+                .orElse(false);
+    }
+
     private void validateInventory(TicketInventoryRequestModel requestModel) {
         if (requestModel.getAvailableTickets() > requestModel.getTotalTickets()) {
             throw new InvalidTicketInventoryException(
