@@ -3,6 +3,9 @@ package com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.a
 import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.api.dto.TicketOrderRequestModel;
 import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.application.exception.InvalidTicketOrderException;
 import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.application.exception.TicketOrderNotFoundException;
+import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.application.port.out.CustomerEligibilityPort;
+import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.application.port.out.EventEligibilityPort;
+import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.application.port.out.TicketInventoryEligibilityPort;
 import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.application.port.out.TicketOrderRepositoryPort;
 import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.model.TicketOrder;
 import org.springframework.stereotype.Service;
@@ -13,9 +16,20 @@ import java.util.List;
 public class TicketOrderService {
 
     private final TicketOrderRepositoryPort ticketOrderRepositoryPort;
+    private final CustomerEligibilityPort customerEligibilityPort;
+    private final EventEligibilityPort eventEligibilityPort;
+    private final TicketInventoryEligibilityPort ticketInventoryEligibilityPort;
 
-    public TicketOrderService(TicketOrderRepositoryPort ticketOrderRepositoryPort) {
+    public TicketOrderService(
+            TicketOrderRepositoryPort ticketOrderRepositoryPort,
+            CustomerEligibilityPort customerEligibilityPort,
+            EventEligibilityPort eventEligibilityPort,
+            TicketInventoryEligibilityPort ticketInventoryEligibilityPort
+    ) {
         this.ticketOrderRepositoryPort = ticketOrderRepositoryPort;
+        this.customerEligibilityPort = customerEligibilityPort;
+        this.eventEligibilityPort = eventEligibilityPort;
+        this.ticketInventoryEligibilityPort = ticketInventoryEligibilityPort;
     }
 
     public List<TicketOrder> getAllOrders() {
@@ -71,6 +85,22 @@ public class TicketOrderService {
 
         if (requestModel.getTotalPrice().doubleValue() <= 0) {
             throw new InvalidTicketOrderException("Total price must be greater than 0.");
+        }
+
+        if (!customerEligibilityPort.isEligible(String.valueOf(requestModel.getCustomerId()))) {
+            throw new InvalidTicketOrderException("Customer is not eligible to place an order.");
+        }
+
+        if (!eventEligibilityPort.isEligible(requestModel.getEventId())) {
+            throw new InvalidTicketOrderException("Event is not eligible for ticket ordering.");
+        }
+
+        if (!ticketInventoryEligibilityPort.isEligible(
+                requestModel.getEventId(),
+                requestModel.getTicketType(),
+                requestModel.getQuantity()
+        )) {
+            throw new InvalidTicketOrderException("Requested ticket inventory is not available.");
         }
     }
 }

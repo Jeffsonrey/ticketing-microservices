@@ -4,6 +4,7 @@ import com.champsoft.vrms.customers.modules.customer.api.dto.CustomerRequestMode
 import com.champsoft.vrms.customers.modules.customer.api.dto.CustomerResponseModel;
 
 import com.champsoft.vrms.customers.modules.customer.api.mapper.CustomerResponseMapper;
+import com.champsoft.vrms.customers.modules.customer.application.service.CustomerEligibilityService;
 import com.champsoft.vrms.customers.modules.customer.application.service.CustomerService;
 import com.champsoft.vrms.customers.modules.customer.domain.model.Customer;
 import jakarta.validation.Valid;
@@ -18,9 +19,14 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final CustomerEligibilityService eligibilityService;
 
-    public CustomerController(CustomerService customerService) {
+    public CustomerController(
+            CustomerService customerService,
+            CustomerEligibilityService eligibilityService
+    ) {
         this.customerService = customerService;
+        this.eligibilityService = eligibilityService;
     }
 
     @GetMapping

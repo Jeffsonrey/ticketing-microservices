@@ -38,6 +38,20 @@ public class TicketInventoryController {
         return ResponseEntity.ok(TicketInventoryResponseMapper.toResponseModel(ticketInventory));
     }
 
+    @GetMapping("/{id}/eligibility")
+    public ResponseEntity<Boolean> isEligible(@PathVariable Long id) {
+        return ResponseEntity.ok(ticketInventoryService.isEligible(id));
+    }
+
+    @GetMapping("/eligibility")
+    public ResponseEntity<Boolean> canFulfill(
+            @RequestParam String eventId,
+            @RequestParam String ticketType,
+            @RequestParam int quantity
+    ) {
+        return ResponseEntity.ok(ticketInventoryService.canFulfill(eventId, ticketType, quantity));
+    }
+
     @PostMapping
     public ResponseEntity<TicketInventoryResponseModel> createInventory(
             @Valid @RequestBody TicketInventoryRequestModel requestModel) {

@@ -1,9 +1,8 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:ticketordermanagement-db
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5436/ticketorderdb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
 
   application:
     name: ticketordermanagement-service
@@ -16,14 +15,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-    database-platform: org.hibernate.dialect.H2Dialect
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        web-allow-others: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
     enabled: true
@@ -31,7 +23,7 @@ spring:
     baseline-on-migrate: true
 
 server:
-  port: 8084
+  port: ${SERVER_PORT:8084}
 
 springdoc:
   api-docs:
@@ -48,8 +40,8 @@ logging:
 
 services:
   events:
-    base-url: https://localhost:8082
+    base-url: ${EVENT_SERVICE_BASE_URL:http://localhost:8082}
   ticket-inventories:
-    base-url: https://localhost:8083
+    base-url: ${TICKET_INVENTORY_SERVICE_BASE_URL:http://localhost:8083}
   customers:
-    base-url: https://localhost:8081
+    base-url: ${CUSTOMER_SERVICE_BASE_URL:http://localhost:8081}

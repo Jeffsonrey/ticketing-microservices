@@ -78,4 +78,15 @@ public class TicketInventory {
     public void setAvailableTickets(Integer availableTickets) {
         this.availableTickets = availableTickets;
     }
+
+    public boolean isEligible() {
+        return availableTickets != null && availableTickets > 0;
+    }
+
+    public boolean canFulfill(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be greater than 0");
+        }
+        return availableTickets != null && availableTickets >= quantity;
+    }
 }

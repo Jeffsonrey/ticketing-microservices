@@ -5,4 +5,7 @@ import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.mo
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TicketOrderRepository extends JpaRepository<TicketOrder, Long>, TicketOrderRepositoryPort {
+    java.util.Optional<TicketOrder> findByOrderIdentifier(String orderIdentifier);
+
+    boolean existsByOrderIdentifier(String orderIdentifier);
 }

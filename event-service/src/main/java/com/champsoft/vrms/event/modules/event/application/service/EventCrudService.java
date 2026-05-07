@@ -2,6 +2,7 @@ package com.champsoft.vrms.event.modules.event.application.service;
 
 
 import com.champsoft.vrms.event.modules.event.application.exception.EventNotFoundException;
+import com.champsoft.vrms.event.modules.event.application.exception.DuplicateEventException;
 import com.champsoft.vrms.event.modules.event.application.port.out.EventRepositoryPort;
 import com.champsoft.vrms.event.modules.event.domain.model.*;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,11 @@ public class EventCrudService {
         );
 
         var schedule = new EventSchedule(startDateTime, endDateTime);
+
+        repo.findDuplicate(title, venueName, startDateTime, endDateTime)
+                .ifPresent(existing -> {
+                    throw new DuplicateEventException("An event with the same title, venue, and schedule already exists.");
+                });
 
         var event = new EventListing(
                 EventId.newId(),
@@ -76,6 +82,17 @@ public class EventCrudService {
             Integer totalCapacity
     ) {
         var event = getById(id);
+
+        var effectiveTitle = title != null ? title : event.getTitle();
+        var effectiveVenueName = venueName != null ? venueName : event.getVenue().getName();
+        var effectiveStart = startDateTime != null ? startDateTime : event.getSchedule().startDateTime();
+        var effectiveEnd = endDateTime != null ? endDateTime : event.getSchedule().endDateTime();
+
+        repo.findDuplicate(effectiveTitle, effectiveVenueName, effectiveStart, effectiveEnd)
+                .filter(existing -> !existing.getId().equals(event.getId()))
+                .ifPresent(existing -> {
+                    throw new DuplicateEventException("An event with the same title, venue, and schedule already exists.");
+                });
 
         if (title != null && !title.isBlank()) {
             event.updateTitle(title);

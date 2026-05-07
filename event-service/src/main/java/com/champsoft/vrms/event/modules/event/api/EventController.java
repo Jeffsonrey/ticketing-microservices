@@ -8,6 +8,7 @@ import com.champsoft.vrms.event.modules.event.api.dto.UpdateEventRequest;
 import com.champsoft.vrms.event.modules.event.api.mapper.EventApiMapper;
 import com.champsoft.vrms.event.modules.event.application.service.EventCrudService;
 import com.champsoft.vrms.event.modules.event.application.service.EventEligibilityService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,7 +29,7 @@ public class EventController {
     }
 
     @PostMapping
-    public ResponseEntity<EventResponse> create(@RequestBody CreateEventRequest request) {
+    public ResponseEntity<EventResponse> create(@Valid @RequestBody CreateEventRequest request) {
         var event = crudService.create(
                 request.title(),
                 request.description(),
@@ -63,7 +64,7 @@ public class EventController {
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> update(
             @PathVariable String id,
-            @RequestBody UpdateEventRequest request
+            @Valid @RequestBody UpdateEventRequest request
     ) {
         var event = crudService.update(
                 id,
@@ -102,9 +103,5 @@ public class EventController {
     public ResponseEntity<Void> delete(@PathVariable String id) {
         crudService.delete(id);
         return ResponseEntity.noContent().build();
-    }
-    @GetMapping("/{id}/eligibility")
-    public ResponseEntity<Boolean> isEligible(@PathVariable String id) {
-        return ResponseEntity.ok(eligibilityService.isEligible(id));
     }
 }

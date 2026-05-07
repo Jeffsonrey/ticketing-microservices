@@ -1,0 +1,166 @@
+services:
+  customers-db:
+    image: postgres:16
+    container_name: customers-db
+    environment:
+      POSTGRES_DB: customersdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d customersdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  event-db:
+    image: postgres:16
+    container_name: event-db
+    environment:
+      POSTGRES_DB: eventdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d eventdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ticketinventory-db:
+    image: postgres:16
+    container_name: ticketinventory-db
+    environment:
+      POSTGRES_DB: ticketinventorydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ticketinventorydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ticketorder-db:
+    image: postgres:16
+    container_name: ticketorder-db
+    environment:
+      POSTGRES_DB: ticketorderdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ticketorderdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  customers-service:
+    build:
+      context: ./customers-service
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://customers-db:5432/customersdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_FLYWAY_ENABLED: "false"
+      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_DATA_LOCATIONS: classpath:seed/docker-demo.sql
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+    ports:
+      - "8081:8081"
+    depends_on:
+      customers-db:
+        condition: service_healthy
+
+  event-service:
+    build:
+      context: ./event-service
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://event-db:5432/eventdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_FLYWAY_ENABLED: "false"
+      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_DATA_LOCATIONS: classpath:seed/docker-demo.sql
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+    ports:
+      - "8082:8082"
+    depends_on:
+      event-db:
+        condition: service_healthy
+
+  ticketinventory-service:
+    build:
+      context: ./ticketinventory-service
+    environment:
+      SERVER_PORT: 8083
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ticketinventory-db:5432/ticketinventorydb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_FLYWAY_ENABLED: "false"
+      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_DATA_LOCATIONS: classpath:seed/docker-demo.sql
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+    ports:
+      - "8083:8083"
+    depends_on:
+      ticketinventory-db:
+        condition: service_healthy
+
+  ticketordermanagement-service:
+    build:
+      context: ./ticketordermanagement-service
+    environment:
+      SERVER_PORT: 8084
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ticketorder-db:5432/ticketorderdb
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_FLYWAY_ENABLED: "false"
+      SPRING_SQL_INIT_MODE: always
+      SPRING_SQL_INIT_DATA_LOCATIONS: classpath:seed/docker-demo.sql
+      SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION: "true"
+      CUSTOMER_SERVICE_BASE_URL: http://customers-service:8081
+      EVENT_SERVICE_BASE_URL: http://event-service:8082
+      TICKET_INVENTORY_SERVICE_BASE_URL: http://ticketinventory-service:8083
+    ports:
+      - "8084:8084"
+    depends_on:
+      ticketorder-db:
+        condition: service_healthy
+      customers-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+      ticketinventory-service:
+        condition: service_started
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    environment:
+      SERVER_PORT: 8080
+      CUSTOMER_SERVICE_URI: http://customers-service:8081
+      EVENT_SERVICE_URI: http://event-service:8082
+      TICKET_INVENTORY_SERVICE_URI: http://ticketinventory-service:8083
+      TICKET_ORDER_SERVICE_URI: http://ticketordermanagement-service:8084
+    ports:
+      - "8080:8080"
+    depends_on:
+      customers-service:
+        condition: service_started
+      event-service:
+        condition: service_started
+      ticketinventory-service:
+        condition: service_started
+      ticketordermanagement-service:
+        condition: service_started

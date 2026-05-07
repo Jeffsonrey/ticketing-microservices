@@ -1,0 +1,630 @@
+{
+  "info": {
+    "_postman_id": "326c0edf-740f-4a34-8934-c03c87ad2b0b",
+    "name": "ticketing-microservices-demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.environment.set('runId', String(Date.now()));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health / Smoke Tests",
+      "item": [
+        {
+          "name": "GET Gateway Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('response is JSON', function () { pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'); });",
+                  "const json = pm.response.json();",
+                  "pm.test('health is UP', function () { pm.expect(json.status).to.eql('UP'); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customers - Success",
+      "item": [
+        {
+          "name": "POST Create Customer",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.environment.set('uniqueEmail', `demo${Date.now()}@example.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+                  "pm.test('response is JSON', function () { pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'); });",
+                  "const json = pm.response.json();",
+                  "const id = json.id || json.customerId || (json.data && json.data.id);",
+                  "pm.test('customer id exists', function () { pm.expect(id).to.exist; });",
+                  "pm.environment.set('customerId', id);",
+                  "pm.test('email matches generated email', function () { pm.expect(json.emailAddress).to.eql(pm.environment.get('uniqueEmail')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Demo\",\n  \"lastName\": \"Customer\",\n  \"emailAddress\": \"{{uniqueEmail}}\",\n  \"phoneNumber\": \"5145557788\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            }
+          }
+        },
+        {
+          "name": "GET All Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('response is an array', function () { pm.expect(json).to.be.an('array'); });",
+                  "pm.test('contains seeded or created customers', function () { pm.expect(json.length).to.be.greaterThan(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Customer By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers", "{{customerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('returned customer matches saved id', function () { pm.expect(String(json.id)).to.eql(String(pm.environment.get('customerId'))); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT Update Customer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"DemoUpdated\",\n  \"lastName\": \"Customer\",\n  \"emailAddress\": \"{{uniqueEmail}}\",\n  \"phoneNumber\": \"5145558899\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers", "{{customerId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.test('customer was updated', function () { pm.expect(json.firstName).to.eql('DemoUpdated'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET Customer Eligibility",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/customers/{{customerId}}/eligibility",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers", "{{customerId}}", "eligibility"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+                  "pm.test('eligibility is true', function () { pm.expect(pm.response.json()).to.eql(true); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Customers - Failure",
+      "item": [
+        {
+          "name": "POST Invalid Customer Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"\",\n  \"lastName\": \"Doe\",\n  \"emailAddress\": \"bad-email\",\n  \"phoneNumber\": \"\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "customers"]
+            }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 400', function () { pm.response.to.have.status(400); });",
+            "pm.test('response is JSON', function () { pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'); });"
+          ] } }]
+        },
+        {
+          "name": "POST Duplicate Email",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Alice\",\n  \"lastName\": \"Again\",\n  \"emailAddress\": \"{{seedDuplicateEmail}}\",\n  \"phoneNumber\": \"5145551212\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/customers", "host": ["{{baseUrl}}"], "path": ["api", "customers"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 409', function () { pm.response.to.have.status(409); });"
+          ] } }]
+        },
+        {
+          "name": "GET Missing Customer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/customers/{{missingCustomerId}}", "host": ["{{baseUrl}}"], "path": ["api", "customers", "{{missingCustomerId}}"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 404', function () { pm.response.to.have.status(404); });"
+          ] } }]
+        },
+        {
+          "name": "PUT Invalid Customer Update",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"\",\n  \"lastName\": \"Doe\",\n  \"emailAddress\": \"nope\",\n  \"phoneNumber\": \"\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/customers/{{customerId}}", "host": ["{{baseUrl}}"], "path": ["api", "customers", "{{customerId}}"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        },
+        {
+          "name": "POST Malformed Customer JSON",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{" },
+            "url": { "raw": "{{baseUrl}}/api/customers", "host": ["{{baseUrl}}"], "path": ["api", "customers"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 400', function () { pm.response.to.have.status(400); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Events - Success",
+      "item": [
+        {
+          "name": "POST Create Event",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const runId = Date.now();",
+                  "pm.environment.set('eventTitle', `Gateway Demo Event ${runId}`);",
+                  "pm.environment.set('updatedEventTitle', `Gateway Demo Event Updated ${runId}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "const id = json.id || json.eventId || (json.data && json.data.id);",
+                  "pm.test('event id exists', function () { pm.expect(id).to.exist; });",
+                  "pm.environment.set('eventId', id);",
+                  "pm.test('event title matches', function () { pm.expect(json.title).to.eql(pm.environment.get('eventTitle')); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"{{eventTitle}}\",\n  \"description\": \"Gateway demo event\",\n  \"venueName\": \"Bell Centre\",\n  \"venueAddress\": \"1909 Avenue des Canadiens-de-Montreal\",\n  \"venueCity\": \"Montreal\",\n  \"startDateTime\": \"2026-09-01T19:00:00\",\n  \"endDateTime\": \"2026-09-01T22:00:00\",\n  \"totalCapacity\": 180\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/events", "host": ["{{baseUrl}}"], "path": ["api", "events"] }
+          }
+        },
+        {
+          "name": "GET All Events",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/events", "host": ["{{baseUrl}}"], "path": ["api", "events"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('response is array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+          ] } }]
+        },
+        {
+          "name": "GET Event By ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "const json = pm.response.json();",
+            "pm.test('returned event matches saved id', function () { pm.expect(json.id).to.eql(pm.environment.get('eventId')); });"
+          ] } }]
+        },
+        {
+          "name": "PUT Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"{{updatedEventTitle}}\",\n  \"totalCapacity\": 220\n}" },
+            "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('event title updated', function () { pm.expect(pm.response.json().title).to.eql(pm.environment.get('updatedEventTitle')); });"
+          ] } }]
+        },
+        {
+          "name": "POST Activate Event",
+          "request": { "method": "POST", "header": [], "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}/activate", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}", "activate"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('event became ACTIVE', function () { pm.expect(pm.response.json().status).to.eql('ACTIVE'); });"
+          ] } }]
+        },
+        {
+          "name": "GET Event Eligibility",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/events/{{eventId}}/eligibility", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{eventId}}", "eligibility"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "const json = pm.response.json();",
+            "pm.test('eligibility payload is returned', function () { pm.expect(json.eligible).to.eql(true); pm.expect(json.eventId).to.eql(pm.environment.get('eventId')); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Events - Failure",
+      "item": [
+        {
+          "name": "POST Invalid Event Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"\",\n  \"description\": \"\",\n  \"venueName\": \"\",\n  \"venueAddress\": \"\",\n  \"venueCity\": \"\",\n  \"startDateTime\": null,\n  \"endDateTime\": null,\n  \"totalCapacity\": 0\n}" },
+            "url": { "raw": "{{baseUrl}}/api/events", "host": ["{{baseUrl}}"], "path": ["api", "events"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"] } }]
+        },
+        {
+          "name": "GET Missing Event",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/events/{{missingEventId}}", "host": ["{{baseUrl}}"], "path": ["api", "events", "{{missingEventId}}"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 404', function () { pm.response.to.have.status(404); });"] } }]
+        },
+        {
+          "name": "POST Duplicate Seeded Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Montreal Jazz Demo\",\n  \"description\": \"Active seeded event for successful orchestration\",\n  \"venueName\": \"Place des Arts\",\n  \"venueAddress\": \"175 Sainte-Catherine St W\",\n  \"venueCity\": \"Montreal\",\n  \"startDateTime\": \"2026-07-01T19:00:00\",\n  \"endDateTime\": \"2026-07-01T22:00:00\",\n  \"totalCapacity\": 250\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/events", "host": ["{{baseUrl}}"], "path": ["api", "events"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 409', function () { pm.response.to.have.status(409); });"] } }]
+        },
+        {
+          "name": "POST Event With Invalid Dates",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Backwards Event\",\n  \"description\": \"Ends before it starts\",\n  \"venueName\": \"Theatre Beanfield\",\n  \"venueAddress\": \"2490 Rue Notre-Dame O\",\n  \"venueCity\": \"Montreal\",\n  \"startDateTime\": \"2026-10-01T22:00:00\",\n  \"endDateTime\": \"2026-10-01T19:00:00\",\n  \"totalCapacity\": 100\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/events", "host": ["{{baseUrl}}"], "path": ["api", "events"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Ticket Inventory - Success",
+      "item": [
+        {
+          "name": "POST Create Inventory",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"{{inventoryTicketType}}\",\n  \"totalTickets\": 40,\n  \"availableTickets\": 40\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ticket-inventories", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+            "const json = pm.response.json();",
+            "const id = json.id || json.ticketInventoryId || (json.data && json.data.id);",
+            "pm.expect(id).to.exist;",
+            "pm.environment.set('ticketInventoryId', id);",
+            "pm.test('inventory is linked to created event', function () { pm.expect(json.eventId).to.eql(pm.environment.get('eventId')); });"
+          ] } }]
+        },
+        {
+          "name": "GET All Inventories",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ticket-inventories", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('response is array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+          ] } }]
+        },
+        {
+          "name": "GET Inventory By ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ticket-inventories/{{ticketInventoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories", "{{ticketInventoryId}}"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('inventory id matches', function () { pm.expect(String(pm.response.json().id)).to.eql(String(pm.environment.get('ticketInventoryId'))); });"
+          ] } }]
+        },
+        {
+          "name": "GET Inventory Eligibility By ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ticket-inventories/{{ticketInventoryId}}/eligibility", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories", "{{ticketInventoryId}}", "eligibility"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('inventory is eligible', function () { pm.expect(pm.response.json()).to.eql(true); });"
+          ] } }]
+        },
+        {
+          "name": "GET Inventory Can Fulfill Quantity",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ticket-inventories/eligibility?eventId={{eventId}}&ticketType={{inventoryTicketType}}&quantity=2", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories", "eligibility"], "query": [
+            { "key": "eventId", "value": "{{eventId}}" },
+            { "key": "ticketType", "value": "{{inventoryTicketType}}" },
+            { "key": "quantity", "value": "2" }
+          ] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('inventory can fulfill quantity', function () { pm.expect(pm.response.json()).to.eql(true); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Ticket Inventory - Failure",
+      "item": [
+        {
+          "name": "POST Invalid Inventory Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"BROKEN\",\n  \"totalTickets\": 0,\n  \"availableTickets\": 10\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ticket-inventories", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"] } }]
+        },
+        {
+          "name": "GET Missing Inventory",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ticket-inventories/{{missingInventoryId}}", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories", "{{missingInventoryId}}"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 404', function () { pm.response.to.have.status(404); });"] } }]
+        },
+        {
+          "name": "GET Insufficient Inventory Eligibility",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ticket-inventories/eligibility?eventId={{seedActiveEventId}}&ticketType=STANDARD&quantity=999", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories", "eligibility"], "query": [
+            { "key": "eventId", "value": "{{seedActiveEventId}}" },
+            { "key": "ticketType", "value": "STANDARD" },
+            { "key": "quantity", "value": "999" }
+          ] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('inventory cannot fulfill large quantity', function () { pm.expect(pm.response.json()).to.eql(false); });"
+          ] } }]
+        },
+        {
+          "name": "POST Duplicate Inventory For Seeded Event/Type",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"eventId\": \"{{seedActiveEventId}}\",\n  \"ticketType\": \"VIP\",\n  \"totalTickets\": 100,\n  \"availableTickets\": 80\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ticket-inventories", "host": ["{{baseUrl}}"], "path": ["api", "ticket-inventories"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 409', function () { pm.response.to.have.status(409); });"] } }]
+        }
+      ]
+    },
+    {
+      "name": "Ticket Orders / Orchestrator - Success",
+      "item": [
+        {
+          "name": "POST Create Ticket Order",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": {{customerId}},\n  \"eventId\": \"{{eventId}}\",\n  \"ticketType\": \"{{inventoryTicketType}}\",\n  \"quantity\": 2,\n  \"totalPrice\": 199.98,\n  \"status\": \"PENDING\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/ticket-orders", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 201', function () { pm.response.to.have.status(201); });",
+            "const json = pm.response.json();",
+            "const id = json.id || json.ticketOrderId || (json.data && json.data.id);",
+            "pm.expect(id).to.exist;",
+            "pm.environment.set('ticketOrderId', id);",
+            "pm.test('order uses created customer and event', function () {",
+            "  pm.expect(String(json.customerId)).to.eql(String(pm.environment.get('customerId')));",
+            "  pm.expect(json.eventId).to.eql(pm.environment.get('eventId'));",
+            "});"
+          ] } }]
+        },
+        {
+          "name": "GET Ticket Order By ID",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ticket-orders/{{ticketOrderId}}", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders", "{{ticketOrderId}}"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('order id matches', function () { pm.expect(String(pm.response.json().id)).to.eql(String(pm.environment.get('ticketOrderId'))); });"
+          ] } }]
+        },
+        {
+          "name": "GET All Ticket Orders",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{baseUrl}}/api/ticket-orders", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders"] } },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('status is 200', function () { pm.response.to.have.status(200); });",
+            "pm.test('response is array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+          ] } }]
+        }
+      ]
+    },
+    {
+      "name": "Ticket Orders / Orchestrator - Failure",
+      "item": [
+        {
+          "name": "POST Order With Missing Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": {{missingCustomerId}},\n  \"eventId\": \"{{seedActiveEventId}}\",\n  \"ticketType\": \"VIP\",\n  \"quantity\": 1,\n  \"totalPrice\": 99.99,\n  \"status\": \"PENDING\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ticket-orders", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 503', function () { pm.response.to.have.status(503); });"] } }]
+        },
+        {
+          "name": "POST Order With Missing Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": {{seedCustomerId}},\n  \"eventId\": \"{{missingEventId}}\",\n  \"ticketType\": \"VIP\",\n  \"quantity\": 1,\n  \"totalPrice\": 99.99,\n  \"status\": \"PENDING\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ticket-orders", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 503', function () { pm.response.to.have.status(503); });"] } }]
+        },
+        {
+          "name": "POST Order With Ineligible Customer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": {{seedCustomerIneligibleId}},\n  \"eventId\": \"{{seedActiveEventId}}\",\n  \"ticketType\": \"VIP\",\n  \"quantity\": 1,\n  \"totalPrice\": 99.99,\n  \"status\": \"PENDING\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ticket-orders", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"] } }]
+        },
+        {
+          "name": "POST Order With Cancelled Event",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": {{seedCustomerId}},\n  \"eventId\": \"{{seedCancelledEventId}}\",\n  \"ticketType\": \"VIP\",\n  \"quantity\": 1,\n  \"totalPrice\": 99.99,\n  \"status\": \"PENDING\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ticket-orders", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"] } }]
+        },
+        {
+          "name": "POST Order With Insufficient Inventory",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": {{seedCustomerId}},\n  \"eventId\": \"{{seedActiveEventId}}\",\n  \"ticketType\": \"STANDARD\",\n  \"quantity\": 999,\n  \"totalPrice\": 9999.99,\n  \"status\": \"PENDING\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ticket-orders", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"] } }]
+        },
+        {
+          "name": "POST Invalid Ticket Order Body",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": 1001,\n  \"eventId\": \"{{seedActiveEventId}}\",\n  \"ticketType\": \"VIP\",\n  \"quantity\": 0,\n  \"totalPrice\": 0,\n  \"status\": \"\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/ticket-orders", "host": ["{{baseUrl}}"], "path": ["api", "ticket-orders"] }
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('status is 400', function () { pm.response.to.have.status(400); });"] } }]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: api-gateway
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+services:
+  customers:
+    uri: ${CUSTOMER_SERVICE_URI:http://localhost:8081}
+  events:
+    uri: ${EVENT_SERVICE_URI:http://localhost:8082}
+  ticket-inventories:
+    uri: ${TICKET_INVENTORY_SERVICE_URI:http://localhost:8083}
+  ticket-orders:
+    uri: ${TICKET_ORDER_SERVICE_URI:http://localhost:8084}

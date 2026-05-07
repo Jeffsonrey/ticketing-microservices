@@ -1,11 +1,11 @@
 package com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.infrastructure.acl;
 
-import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.application.port.out.CustomerEligibilityPort;
 import com.champsoft.vrms.ticketordermanagement.modules.ticketordermanagement.application.port.out.TicketInventoryEligibilityPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class TicketInventoryEligibilityRestAdapter implements TicketInventoryEligibilityPort {
@@ -19,8 +19,13 @@ public class TicketInventoryEligibilityRestAdapter implements TicketInventoryEli
     }
 
     @Override
-    public boolean isEligible(String customerId) {
-        String url = baseUrl + "/ticket-inventories/" + customerId + "/eligibility";
+    public boolean isEligible(String eventId, String ticketType, int quantity) {
+        String url = UriComponentsBuilder.fromUriString(baseUrl)
+                .path("/api/ticket-inventories/eligibility")
+                .queryParam("eventId", eventId)
+                .queryParam("ticketType", ticketType)
+                .queryParam("quantity", quantity)
+                .toUriString();
 
         try{
             Boolean eligible = restTemplate.getForObject(url, Boolean.class);

@@ -77,4 +77,20 @@ public class Customer {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
+
+    public boolean isEligibleForRegistration() {
+        if (emailAddress == null || !emailAddress.contains("@")) {
+            return false;
+        }
+
+        if (phoneNumber == null) {
+            return false;
+        }
+
+        long digits = phoneNumber.chars()
+                .filter(Character::isDigit)
+                .count();
+
+        return digits >= 10;
+    }
 }

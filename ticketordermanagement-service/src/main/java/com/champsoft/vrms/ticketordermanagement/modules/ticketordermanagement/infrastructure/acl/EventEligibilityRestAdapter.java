@@ -18,11 +18,11 @@ public class EventEligibilityRestAdapter implements EventEligibilityPort {
     }
     @Override
     public boolean isEligible(String eventId) {
-        String url = baseUrl + "/events/" + eventId + "/eligibility";
+        String url = baseUrl + "/api/events/" + eventId + "/eligibility";
 
         try{
-            Boolean eligible = restTemplate.getForObject(url, Boolean.class);
-            return Boolean.TRUE.equals(eligible);
+            EventEligibilityPayload response = restTemplate.getForObject(url, EventEligibilityPayload.class);
+            return response != null && response.eligible();
         }catch (HttpClientErrorException.NotFound ex){
             throw ex;
         }catch (HttpClientErrorException ex){
@@ -32,5 +32,8 @@ public class EventEligibilityRestAdapter implements EventEligibilityPort {
             throw ex;
         }
 
+    }
+
+    private record EventEligibilityPayload(String eventId, boolean eligible) {
     }
 }

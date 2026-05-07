@@ -71,7 +71,27 @@ public class TicketInventoryService {
         ticketInventoryRepositoryPort.delete(existingInventory);
     }
 
+    public boolean isEligible(Long id) {
+        return getInventoryById(id).isEligible();
+    }
+
+    public boolean canFulfill(String eventId, String ticketType, int quantity) {
+        if (quantity <= 0) {
+            throw new InvalidTicketInventoryException("Quantity must be greater than 0.");
+        }
+
+        return ticketInventoryRepositoryPort.findByEventIdAndTicketType(eventId, ticketType)
+                .map(inventory -> inventory.canFulfill(quantity))
+                .orElse(false);
+    }
+
     private void validateInventory(TicketInventoryRequestModel requestModel) {
+        if (requestModel.getTotalTickets() == null || requestModel.getTotalTickets() <= 0) {
+            throw new InvalidTicketInventoryException(
+                    "Total tickets must be greater than 0."
+            );
+        }
+
         if (requestModel.getAvailableTickets() > requestModel.getTotalTickets()) {
             throw new InvalidTicketInventoryException(
                     "Available tickets cannot be greater than total tickets."

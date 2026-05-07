@@ -19,7 +19,7 @@ public class CustomerEligibilityRestAdapter implements CustomerEligibilityPort {
 
     @Override
     public boolean isEligible(String customerId) {
-        String url = baseUrl + "/customers/" + customerId + "/eligibility";
+        String url = baseUrl + "/api/customers/" + customerId + "/eligibility";
 
         try{
             Boolean eligible = restTemplate.getForObject(url, Boolean.class);

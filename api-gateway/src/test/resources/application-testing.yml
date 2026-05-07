@@ -1,0 +1,18 @@
+server:
+  port: 0
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+services:
+  customers:
+    uri: http://localhost:8081
+  events:
+    uri: http://localhost:8082
+  ticket-inventories:
+    uri: http://localhost:8083
+  ticket-orders:
+    uri: http://localhost:8084
